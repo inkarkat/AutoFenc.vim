@@ -89,6 +89,9 @@
 "        If the output of the external program is this string, then it means
 "        that the file encoding was not detected successfully. The string must
 "        be case-sensitive.
+"    - g:autofenc_enc_blacklist (regular expression, default '')
+"        If the detected encoding matches this regular expression, it will be
+"        ignored.
 "
 " Requirements:
 "   - filetype plugin must be enabled (a line like 'filetype plugin on' must
@@ -235,6 +238,7 @@ call s:CheckAndSetVar('g:autofenc_autodetect_ext_prog', 1)
 call s:CheckAndSetVar('g:autofenc_ext_prog_path', 'enca')
 call s:CheckAndSetVar('g:autofenc_ext_prog_args', '-i -L czech')
 call s:CheckAndSetVar('g:autofenc_ext_prog_unknown_fenc', '???')
+call s:CheckAndSetVar('g:autofenc_enc_blacklist', '')
 
 "-------------------------------------------------------------------------------
 " Normalizes selected encoding and returns it, so it can be safely used as
@@ -599,7 +603,7 @@ function s:DetectAndSetFileEncoding()
 	" don't call again on the nested trigger from the edit
 	let b:autofenc_done = enc
 
-	if (enc != '') && (enc != 'ascii')
+	if (enc != '') && (enc !=? 'ascii') && (enc !~? g:autofenc_enc_blacklist)
 		if s:SetFileEncoding(enc)
 			if g:autofenc_emit_messages
 				echomsg "AutoFenc: Detected [".enc."] from file, loaded with fenc=".&fenc
