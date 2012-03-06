@@ -464,20 +464,26 @@ endfunction
 " A safe version of shellescape. Use it instead of shellescape().
 "-------------------------------------------------------------------------------
 function s:SafeShellescape(path)
-	" On MS Windows, we need to disable the option shellslash before calling
-	" shellescape() because otherwise, it may do stupid things (see, e.g.,
-	" http://vim.1045645.n5.nabble.com/shellescape-doesn-t-work-in-Windows-with-shellslash-set-td1211618.html).
-	if has("win32") || has("win64")
-		try
-			let old_ssl = &shellslash
-			set noshellslash
+	try
+		if exists('*shellescape')
+			" On MS Windows, we need to disable the option shellslash before calling
+			" shellescape() because otherwise, it may do stupid things (see, e.g.,
+			" http://vim.1045645.n5.nabble.com/shellescape-doesn-t-work-in-Windows-with-shellslash-set-td1211618.html).
+			if has("win32") || has("win64")
+				let old_ssl = &shellslash
+				set noshellslash
+			endif
 			return shellescape(a:path)
-		finally
+		else
+			" The shellescape({string}) function only exists since Vim 7.0.111
+			" Try to crudely support plain Vim 7.0, too.
+			return '"'.substitute(a:path, '"', '\\"', 'g').'"'
+		endif
+	finally
+		if exists('old_ssl')
 			let &shellslash = old_ssl
-		endtry
-	else
-		return shellescape(a:path)
-	endif
+		endif
+	endtry
 endfunction
 
 "-------------------------------------------------------------------------------
