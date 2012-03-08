@@ -277,10 +277,24 @@ function s:SetFileEncoding(enc)
 
 	" Check whether we're not trying to set the current file encoding
 	if nenc != "" && nenc !=? &fenc
-		" Set the file encoding and reload it, keeping any user-specified
-		" fileformat, and keeping any bad bytes in case the header is wrong (this
-		" won't let the user save if a conversion error happened on read)
-		exec 'edit ++enc='.nenc.' ++ff='.&ff.' ++bad=keep'
+		if exists('&autochdir') && &autochdir
+			" Other autocmds may have changed the window's working directory;
+			" when 'autochdir' is set, the :edit will reset that, so temporarily
+			" disable the setting.
+			let old_autochdir = &autochdir
+			set noautochdir
+		endif
+		try
+			" Set the file encoding and reload it, keeping any user-specified
+			" fileformat, and keeping any bad bytes in case the header is wrong
+			" (this won't let the user save if a conversion error happened on
+			" read)
+			exec 'edit ++enc='.nenc.' ++ff='.&ff.' ++bad=keep'
+		finally
+			if exists('old_autochdir')
+				let &autochdir = old_autochdir
+			endif
+		endtry
 
 		" File was reloaded
 		return 1
