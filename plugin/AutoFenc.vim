@@ -70,6 +70,8 @@
 "        Enables/disables detection of encoding for CSS documents.
 "    - g:autofenc_autodetect_comment (0 or 1, default 1)
 "        Enables/disables detection of encoding in comments.
+"    - g:autofenc_autodetect_commentexpr (regular expression, see below)
+"        Pattern for detection of encodings specified in a comment.
 "    - g:autofenc_autodetect_num_of_lines (number >= 0, default 5)
 "        How many lines from the beginning and from the end of the file should
 "        be searched for the possible encoding declaration.
@@ -233,6 +235,7 @@ call s:CheckAndSetVar('g:autofenc_autodetect_html', 1)
 call s:CheckAndSetVar('g:autofenc_autodetect_xml', 1)
 call s:CheckAndSetVar('g:autofenc_autodetect_css', 1)
 call s:CheckAndSetVar('g:autofenc_autodetect_comment', 1)
+call s:CheckAndSetVar('g:autofenc_autodetect_commentexpr', '\c^\A\(.*\s\)\?\(\(\(file\)\?en\)\?coding\|charset\)[:=]\?\s*\zs[-A-Za-z0-9_]\+')
 call s:CheckAndSetVar('g:autofenc_autodetect_num_of_lines', 5)
 call s:CheckAndSetVar('g:autofenc_autodetect_ext_prog', 1)
 call s:CheckAndSetVar('g:autofenc_ext_prog_path', 'enca')
@@ -455,10 +458,10 @@ endfunction
 " returned according to this line. If there is no such line, the empty string
 " is returned.
 "
-" Currently, the format of the comment that specifies encoding is some
-" non-alphabetic characters at the beginning of the line, then 'coding'
-" or 'encoding' (without quotes, case insensitive), which is followed by
-" optional ':' (and whitespace) and the name of the encoding.
+" The default format of the comment that specifies encoding is some
+" non-alphabetic characters at the beginning of the line, then 'charset'
+" or '[[file]en]coding' (without quotes, case insensitive), which is followed
+" by optional ':' (and whitespace) and the name of the encoding.
 "-------------------------------------------------------------------------------
 function s:CommentEncodingDetection()
 	" Get first and last X lines from the file (according to the configuration)
@@ -467,9 +470,8 @@ function s:CommentEncodingDetection()
 	let lines_to_search_enc += readfile(expand('%:p'), '', -num_of_lines)
 
 	" Check all of the returned lines
-	let re = '\c^\A.*\(en\)\?coding[:=]\?\s*\zs[-A-Za-z0-9_]\+'
 	for line in lines_to_search_enc
-		let enc = matchstr(line, re)
+		let enc = matchstr(line, g:autofenc_autodetect_commentexpr)
 		if enc != ''
 			return enc
 		endif
