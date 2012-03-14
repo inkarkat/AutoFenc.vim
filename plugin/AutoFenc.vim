@@ -291,7 +291,7 @@ function s:NormalizeEncoding(enc)
 		return 'cp125'.nenc[strlen(nenc)-1]
 	elseif nenc == 'utf8'
 		return 'utf-8'
-	elseif g:autofenc_emit_messages
+	elseif g:autofenc_emit_messages && nenc !~ '^\%(8bit-\|2byte-\)\?\%(latin[12]\|utf-8\|utf-16\%(le\)\?\|ucs-[24]\%(le\)\?\|iso-8859-\d\{1,2}\|cp\d\{3,4}\)$'
 		echomsg 'AutoFenc: detected unrecognized charset, trying fenc='.nenc
 	endif
 
