@@ -1,8 +1,8 @@
 " File:        AutoFenc.vim
 " Brief:       Tries to automatically detect file encoding
 " Author:      Petr Zemek, s3rvac AT gmail DOT com
-" Version:     1.3.4
-" Last Change: Mon Feb 27 16:08:57 CET 2012
+" Version:     1.4
+" Last Change: Sun Mar 11 11:35:45 CET 2012
 "
 " License:
 "   Copyright (C) 2009-2012 Petr Zemek
@@ -92,7 +92,7 @@
 "        that the file encoding was not detected successfully. The string must
 "        be case-sensitive.
 "    - g:autofenc_enc_blacklist (regular expression, default '')
-"        If the detected encoding matches this regular expression, it will be
+"        If the detected encoding matches this regular expression, it is
 "        ignored.
 "
 " Requirements:
@@ -122,6 +122,29 @@
 "  Let me know if there are others and I'll add them here.
 "
 " Changelog:
+"   1.4 (2012-03-11) Thanks to Ingo Karkat for the updates in this version.
+"     - Improved the detection regexp for comments:
+"         - added "fileencoding" and "charset";
+"         - demands that there is a whitespace in front of the keyword, so that
+"           "daycoding" doesn't match;
+"         - g:autofenc_autodetect_commentexpr allows to configure the pattern
+"           for comment detection.
+"     - Introduced g:autofenc_enc_blacklist to disable some encodings. For
+"       example, the enca tool has a tendency to detect plain text files as
+"       UTF-7. With the blacklist, AutoFenc can be instructed to ignore those
+"       encodings.
+"     - The check for ASCII is set to be case-insensitive because enca reports
+"       this in uppercase, so the condition fails unless ignorecase is set.
+"     - Keeps changed CWD with 'autochdir' setting by temporarily disabling it.
+"       For example, suppose that a user has ":lcd .." in
+"       after/ftplugin/gitcommit.vim and that he is in the Git root directory,
+"       not the .git subdir when composing a commit message. The reload of the
+"       buffer by AutoFenc (via :edit) again triggered the automatic change of
+"       the working dir, and therefore the customization was lost. The
+"       'autochdir' setting needs to be temporarily disabled to avoid that.
+"     - Added a support for plain Vim 7.0 in the shellescape() emulation from
+"       version 1.3.4. Otherwise, there were errors in Vim 7.0.
+"
 "   1.3.4 (2012-02-27)
 "     - Don't override when the user explicitly sets file encoding with ++enc
 "       (thanks to Benjamin Fritz).
@@ -625,7 +648,8 @@ function s:DetectAndSetFileEncoding()
 	" don't call again on the nested trigger from the edit
 	let b:autofenc_done = enc
 
-	if (enc != '') && (enc !=? 'ascii') && (enc !~? g:autofenc_enc_blacklist)
+	if (enc != '') && (enc !=? 'ascii') &&
+			\ (g:autofenc_enc_blacklist == '' || enc !~? g:autofenc_enc_blacklist)
 		if s:SetFileEncoding(enc)
 			if g:autofenc_emit_messages
 				echomsg "AutoFenc: Detected [".enc."] from file, loaded with fenc=".&fenc
