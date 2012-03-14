@@ -255,8 +255,11 @@ call s:CheckAndSetVar('g:autofenc_disable_for_files_matching', '^[-_a-zA-Z0-9]\+
 call s:CheckAndSetVar('g:autofenc_disable_for_file_types', [])
 call s:CheckAndSetVar('g:autofenc_autodetect_bom', (&fileencodings !~# 'ucs-bom'))
 call s:CheckAndSetVar('g:autofenc_autodetect_html', 1)
+call s:CheckAndSetVar('g:autofenc_autodetect_html_filetypes', '^\(html.*\|xhtml\|aspperl\|aspvbs\|cf\|dtml\|gsp\|jsp\|mason\|php\|plp\|smarty\|spyce\|webmacro\)$')
 call s:CheckAndSetVar('g:autofenc_autodetect_xml', 1)
+call s:CheckAndSetVar('g:autofenc_autodetect_xml_filetypes', '^\(xml\|xquery\|xsd\|xslt\?\|ant\|dsl\|mxml\|svg\|wsh\|xbl\)$')
 call s:CheckAndSetVar('g:autofenc_autodetect_css', 1)
+call s:CheckAndSetVar('g:autofenc_autodetect_css_filetypes', '^\(css\|sass\)$')
 call s:CheckAndSetVar('g:autofenc_autodetect_comment', 1)
 call s:CheckAndSetVar('g:autofenc_autodetect_commentexpr', '\c^\A\%(.*\s\)\?\%(\%(\%(file\)\?en\)\?coding\|charset\)\%([:=]\s*\|\s\+\)\([''"]\?\)\zs[-A-Za-z0-9_]\{2,}\ze\1')
 call s:CheckAndSetVar('g:autofenc_autodetect_num_of_lines', 5)
@@ -594,7 +597,7 @@ function s:DetectFileEncoding()
 	endif
 
 	" HTML encoding detection
-	if g:autofenc_autodetect_html && &filetype =~ '\(html\|xhtml\)'
+	if g:autofenc_autodetect_html && &filetype =~? g:autofenc_autodetect_html_filetypes
 		let enc = s:HTMLEncodingDetection()
 		if enc != ''
 			return enc
@@ -602,7 +605,7 @@ function s:DetectFileEncoding()
 	endif
 
 	" XML encoding detection
-	if g:autofenc_autodetect_xml && &filetype =~ '\(xml\|xsl\|xsd\)'
+	if g:autofenc_autodetect_xml && &filetype =~? g:autofenc_autodetect_xml_filetypes
 		let enc = s:XMLEncodingDetection()
 		if enc != ''
 			return enc
@@ -610,7 +613,7 @@ function s:DetectFileEncoding()
 	endif
 
 	" CSS encoding detection
-	if g:autofenc_autodetect_css && &filetype =~ '\(css\)'
+	if g:autofenc_autodetect_css && &filetype =~? g:autofenc_autodetect_css_filetypes
 		let enc = s:CSSEncodingDetection()
 		if enc != ''
 			return enc
